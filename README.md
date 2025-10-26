@@ -14,11 +14,12 @@
 
 ### 🎯 Core Capabilities
 
+- **🌐 Real Web Search** - Live web research using OpenAI Agents SDK (OpenAI provider only)
 - **🔬 Automated Research** - AI analyzes topics and synthesizes information from multiple perspectives
 - **✍️ Script Generation** - YouTube-optimized scripts with hooks, body structure, and strong CTAs
 - **🎨 Multiple Styles** - Educational, entertaining, or inspirational tone options
 - **🎙️ Brand Voice** - Customize scripts to match your unique voice and style
-- **📊 Source Citations** - Transparent research with credibility assessment
+- **📊 Source Citations** - Real URLs and transparent research with credibility assessment
 - **⚡ Performance Tracking** - Token usage, generation time, and cost metrics
 
 ### 🛠️ Technical Features
@@ -108,6 +109,59 @@ python -m src.main
 
 ---
 
+## 🌐 Web Search Integration
+
+When using **OpenAI as the AI provider**, the application automatically performs **real-time web searches** to gather current, verifiable information for your scripts.
+
+### How It Works
+
+1. **Live Research**: Uses OpenAI Agents SDK with WebSearchTool
+2. **Current Data**: Searches the web for 2024-2025 information
+3. **Real Sources**: Provides actual URLs and citations
+4. **Multi-Query**: Searches multiple angles for comprehensive coverage
+5. **Synthesis**: AI analyzes and synthesizes findings into coherent scripts
+
+### Research Depth Levels
+
+- **Quick** (2-3 sources): Fast research for simple topics
+- **Medium** (4-6 sources): Balanced research for most use cases
+- **Deep** (8-10 sources): Comprehensive research for complex topics
+
+### Example Research Output
+
+```json
+{
+  "sources": [
+    {
+      "title": "Web Development in 2025 - Medium",
+      "url": "https://medium.com/@author/web-dev-2025",
+      "credibility": "high",
+      "key_points": ["AI tools adoption at 76%", "PWAs reduce load time by 50%"]
+    }
+  ],
+  "statistics": [
+    "76% of developers use AI coding tools (GitHub, 2025)",
+    "PWAs improve performance by 50% (Google Web Vitals, 2025)"
+  ],
+  "trending_angles": [
+    "AI-assisted development workflows",
+    "WebAssembly for high-performance apps"
+  ]
+}
+```
+
+### Provider Comparison
+
+| Feature | OpenAI (with Web Search) | Anthropic |
+|---------|-------------------------|-----------|
+| **Research Source** | Real-time web search | AI knowledge base |
+| **Data Currency** | Current (2024-2025) | Training cutoff (2024) |
+| **Source URLs** | ✅ Yes | ❌ No |
+| **Verification** | ✅ Verifiable sources | ⚠️ Based on training |
+| **Best For** | Current events, trends | General knowledge topics |
+
+---
+
 ## 🎯 Usage Examples
 
 ### Web Interface
@@ -181,6 +235,7 @@ curl http://localhost:8000/api/scripts/{script_id}
 |-----------|-----------|---------|
 | **Backend** | FastAPI | High-performance async web framework |
 | **AI Agents** | OpenAI GPT-4o / Claude 3.5 | Research & script generation |
+| **Web Search** | OpenAI Agents SDK + WebSearchTool | Real-time web research (OpenAI only) |
 | **Database** | SQLite + SQLAlchemy | Data persistence with async support |
 | **Validation** | Pydantic | Request/response validation |
 | **Frontend** | Vanilla JS + CSS | Lightweight, responsive UI |
@@ -190,12 +245,13 @@ curl http://localhost:8000/api/scripts/{script_id}
 ```
 ai-script-agent/
 ├── src/
-│   ├── agents/              # AI Agent Implementations
-│   │   ├── base.py          # Claude SDK base agent
-│   │   ├── openai_base.py   # OpenAI SDK base agent
-│   │   ├── researcher.py    # Research & synthesis agent
-│   │   └── scriptwriter.py  # Script generation agent
-│   ├── models/              # Database & Schemas
+│   ├── agents/                  # AI Agent Implementations
+│   │   ├── base.py              # Claude SDK base agent
+│   │   ├── openai_base.py       # OpenAI SDK base agent
+│   │   ├── researcher.py        # Research & synthesis agent
+│   │   ├── web_research_agent.py # Web search research (OpenAI Agents SDK)
+│   │   └── scriptwriter.py      # Script generation agent
+│   ├── models/                  # Database & Schemas
 │   │   ├── database.py      # SQLAlchemy ORM models
 │   │   └── schemas.py       # Pydantic validation schemas
 │   ├── services/            # Business Logic
