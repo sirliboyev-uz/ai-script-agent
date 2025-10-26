@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Script Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .script-section {
+            margin-bottom: 30px;
+        }
+
+        .script-section h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.3em;
+        }
+
+        .script-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .metadata {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metadata-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .metadata-item strong {
+            display: block;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .sources {
+            margin-top: 20px;
+        }
+
+        .source-item {
+            background: #fff8e1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ffa726;
+        }
+
+        .btn-copy {
+            background: #4caf50;
+            margin-top: 20px;
+        }
+
+        .btn-copy:hover {
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 AI Script Generator</h1>
+            <p>Research-powered YouTube script generation with Claude AI</p>
+        </div>
+
+        <div class="card" id="inputCard">
+            <form id="scriptForm">
+                <div class="form-group">
+                    <label for="topic">Video Topic *</label>
+                    <input type="text" id="topic" name="topic" placeholder="e.g., How to start a dropshipping business" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="style">Script Style</label>
+                    <select id="style" name="style">
+                        <option value="educational">Educational</option>
+                        <option value="entertaining">Entertaining</option>
+                        <option value="inspirational">Inspirational</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">Target Duration</label>
+                    <select id="duration" name="duration">
+                        <option value="5-8 minutes">5-8 minutes</option>
+                        <option value="10-15 minutes" selected>10-15 minutes</option>
+                        <option value="15-20 minutes">15-20 minutes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="research_depth">Research Depth</label>
+                    <select id="research_depth" name="research_depth">
+                        <option value="quick">Quick (2-3 sources)</option>
+                        <option value="medium" selected>Medium (4-6 sources)</option>
+                        <option value="deep">Deep (8-10 sources)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="brand_voice">Brand Voice (Optional)</label>
+                    <textarea id="brand_voice" name="brand_voice" placeholder="e.g., Professional yet friendly, casual tone, use humor..."></textarea>
+                </div>
+
+                <button type="submit" class="btn">Generate Script</button>
+            </form>
+        </div>
+
+        <div class="card loading" id="loadingCard">
+            <div class="spinner"></div>
+            <p><strong>Generating your script...</strong></p>
+            <p>This may take 30-60 seconds as we research and write your script.</p>
+        </div>
+
+        <div class="card result" id="resultCard">
+            <h2 id="resultTitle">Script Generated!</h2>
+
+            <div class="metadata" id="metadata"></div>
+
+            <div class="script-section">
+                <h3>📝 Full Script</h3>
+                <div class="script-content" id="fullScript"></div>
+            </div>
+
+            <div class="sources" id="sources"></div>
+
+            <button class="btn btn-copy" onclick="copyScript()">📋 Copy Script</button>
+            <button class="btn" onclick="resetForm()" style="margin-top: 10px; background: #6c757d;">Generate Another</button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('scriptForm');
+        const inputCard = document.getElementById('inputCard');
+        const loadingCard = document.getElementById('loadingCard');
+        const resultCard = document.getElementById('resultCard');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                topic: document.getElementById('topic').value,
+                style: document.getElementById('style').value,
+                duration: document.getElementById('duration').value,
+                research_depth: document.getElementById('research_depth').value,
+                brand_voice: document.getElementById('brand_voice').value || null
+            };
+
+            inputCard.style.display = 'none';
+            loadingCard.classList.add('active');
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate script');
+                }
+
+                const data = await response.json();
+                displayResult(data);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+                resetForm();
+            }
+        });
+
+        function displayResult(data) {
+            loadingCard.classList.remove('active');
+            resultCard.classList.add('active');
+
+            document.getElementById('resultTitle').textContent = data.title || 'Script Generated!';
+
+            // Metadata
+            const metadata = document.getElementById('metadata');
+            metadata.innerHTML = `
+                <div class="metadata-item">
+                    <strong>Duration</strong>
+                    ${data.estimated_duration || 'N/A'}
+                </div>
+                <div class="metadata-item">
+                    <strong>Tone</strong>
+                    ${data.tone || 'N/A'}
+                </div>
+                <div class="metadata-item">
+                    <strong>Tokens Used</strong>
+                    ${data.tokens_used || 0}
+                </div>
+                <div class="metadata-item">
+                    <strong>Generation Time</strong>
+                    ${data.generation_time ? data.generation_time.toFixed(2) + 's' : 'N/A'}
+                </div>
+            `;
+
+            // Full script
+            document.getElementById('fullScript').textContent = data.full_script;
+
+            // Sources
+            const sourcesDiv = document.getElementById('sources');
+            if (data.sources && data.sources.length > 0) {
+                sourcesDiv.innerHTML = '<h3>📚 Sources</h3>';
+                data.sources.forEach(source => {
+                    sourcesDiv.innerHTML += `
+                        <div class="source-item">
+                            <strong>${source.title}</strong>
+                            ${source.url ? `<p><a href="${source.url}" target="_blank">${source.url}</a></p>` : ''}
+                            <p><small>Credibility: ${source.credibility}</small></p>
+                        </div>
+                    `;
+                });
+            }
+
+            window.currentScript = data.full_script;
+        }
+
+        function copyScript() {
+            navigator.clipboard.writeText(window.currentScript);
+            alert('Script copied to clipboard!');
+        }
+
+        function resetForm() {
+            inputCard.style.display = 'block';
+            loadingCard.classList.remove('active');
+            resultCard.classList.remove('active');
+            form.reset();
+        }
+    </script>
+</body>
+</html>
