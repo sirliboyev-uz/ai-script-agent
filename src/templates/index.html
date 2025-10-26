@@ -622,12 +622,14 @@
     <div class="noise-overlay"></div>
 
     <div class="container">
+        <!-- Navigation -->
+        <nav style="display: flex; justify-content: flex-end; margin-bottom: 24px; gap: 12px;">
+            <a href="/" style="text-decoration: none; color: var(--gray-600); font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='var(--primary)'; this.style.background='var(--gray-100)'" onmouseout="this.style.color='var(--gray-600)'; this.style.background='transparent'">Generate</a>
+            <a href="/dashboard" style="text-decoration: none; color: var(--gray-600); font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='var(--primary)'; this.style.background='var(--gray-100)'" onmouseout="this.style.color='var(--gray-600)'; this.style.background='transparent'">Dashboard</a>
+        </nav>
+
         <!-- Header -->
         <div class="header">
-            <div class="header-badge">
-                <span class="badge-dot"></span>
-                AI-Powered Script Generation
-            </div>
             <h1>🎬 Script Generator</h1>
             <p>Transform any topic into professional YouTube scripts in seconds</p>
         </div>
@@ -640,6 +642,14 @@
             </div>
             <div class="card-body">
                 <form id="scriptForm">
+                    <!-- Template Quick Start -->
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 12px;">Quick Start Templates</label>
+                        <div id="templateGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                            <!-- Templates loaded dynamically -->
+                        </div>
+                    </div>
+
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="topic">
@@ -756,6 +766,57 @@
         const inputCard = document.getElementById('inputCard');
         const loadingCard = document.getElementById('loadingCard');
         const resultCard = document.getElementById('resultCard');
+
+        // Load templates on page load
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/templates');
+                const data = await response.json();
+                const grid = document.getElementById('templateGrid');
+
+                grid.innerHTML = data.templates.map(t => `
+                    <button type="button" onclick="applyTemplate('${t.id}')" style="
+                        padding: 12px 16px;
+                        background: white;
+                        border: 1.5px solid var(--gray-200);
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        text-align: left;
+                        font-size: 13px;
+                        color: var(--gray-700);
+                        font-weight: 500;
+                    " onmouseover="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 2px 8px rgba(99,102,241,0.1)'" onmouseout="this.style.borderColor='var(--gray-200)'; this.style.boxShadow='none'">
+                        <div style="margin-bottom: 4px;">${t.icon} ${t.name}</div>
+                        <div style="font-size: 11px; color: var(--gray-500); font-weight: 400;">${t.description}</div>
+                    </button>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+        }
+
+        async function applyTemplate(templateId) {
+            try {
+                const response = await fetch(`/api/templates/${templateId}`);
+                const data = await response.json();
+
+                // Apply template settings to form
+                document.getElementById('topic').value = data.settings.topic;
+                document.getElementById('style').value = data.settings.style;
+                document.getElementById('duration').value = data.settings.duration;
+                document.getElementById('research_depth').value = data.settings.research_depth;
+                document.getElementById('brand_voice').value = data.settings.brand_voice;
+
+                // Scroll to topic input
+                document.getElementById('topic').focus();
+            } catch (error) {
+                console.error('Error applying template:', error);
+            }
+        }
+
+        // Load templates when page loads
+        loadTemplates();
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();

@@ -16,6 +16,8 @@ from src.models.schemas import (
     HealthResponse
 )
 from src.services import ScriptService
+from src.services.analytics_service import AnalyticsService
+from src.services.template_service import TemplateService
 
 
 @asynccontextmanager
@@ -48,14 +50,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Service instance
+# Service instances
 script_service = ScriptService()
+analytics_service = AnalyticsService()
+template_service = TemplateService()
 
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Serve the frontend interface."""
     html_path = Path(__file__).parent / "templates" / "index.html"
+    with open(html_path, "r") as f:
+        return f.read()
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard():
+    """Serve the analytics dashboard."""
+    html_path = Path(__file__).parent / "templates" / "dashboard.html"
     with open(html_path, "r") as f:
         return f.read()
 
@@ -147,6 +159,100 @@ async def list_scripts(
         return result
 
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/analytics/dashboard")
+async def get_dashboard_analytics(db: AsyncSession = Depends(get_db)):
+    """
+    Get dashboard analytics and stats.
+
+    Returns:
+        Dashboard metrics and recent scripts
+    """
+    try:
+        stats = await analytics_service.get_dashboard_stats(db=db)
+        recent = await analytics_service.get_recent_scripts(db=db, limit=5)
+
+        return {
+            "stats": stats,
+            "recent_scripts": recent
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/templates")
+async def get_templates():
+    """
+    Get all script templates.
+
+    Returns:
+        List of available templates
+    """
+    return {"templates": template_service.get_all_templates()}
+
+
+@app.get("/api/templates/{template_id}")
+async def get_template(template_id: str):
+    """
+    Get specific template and apply it.
+
+    Args:
+        template_id: Template identifier
+
+    Returns:
+        Template settings
+    """
+    try:
+        template = template_service.get_template(template_id)
+        settings = template_service.apply_template(template_id)
+
+        return {
+            "template": template,
+            "settings": settings
+        }
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/scripts/{script_id}")
+async def delete_script(
+    script_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Delete a script by ID.
+
+    Args:
+        script_id: Script UUID
+        db: Database session
+
+    Returns:
+        Success message
+    """
+    try:
+        from sqlalchemy import delete
+        from src.models.database import Script
+
+        result = await db.execute(
+            delete(Script).where(Script.script_id == script_id)
+        )
+        await db.commit()
+
+        if result.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Script not found")
+
+        return {"message": "Script deleted successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
