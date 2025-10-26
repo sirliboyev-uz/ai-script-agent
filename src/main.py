@@ -13,11 +13,21 @@ from src.models.schemas import (
     GenerateScriptRequest,
     ScriptResponse,
     ScriptListResponse,
-    HealthResponse
+    HealthResponse,
+    RefineRequest,
+    RegenerateRequest
 )
+from src.models.auth_schemas import UserCreate, UserLogin, UserResponse, Token
 from src.services import ScriptService
 from src.services.analytics_service import AnalyticsService
 from src.services.template_service import TemplateService
+from src.services.auth_service import auth_service
+from src.services.refinement_service import refinement_service
+from src.services.export_service import export_service
+from src.utils.auth_dependencies import get_current_user, get_current_user_optional
+from src.models.database import User
+from fastapi.responses import StreamingResponse
+import io
 
 
 @asynccontextmanager
@@ -253,6 +263,278 @@ async def delete_script(
         raise
     except Exception as e:
         await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============= Authentication Endpoints =============
+
+@app.post("/api/auth/register", response_model=Token)
+async def register(
+    user_data: UserCreate,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Register a new user.
+
+    Args:
+        user_data: User registration data
+        db: Database session
+
+    Returns:
+        JWT access token
+    """
+    try:
+        # Create user
+        user = await auth_service.create_user(db, user_data)
+
+        # Generate token
+        access_token = auth_service.create_access_token(
+            data={"sub": user.id, "email": user.email}
+        )
+
+        return {"access_token": access_token, "token_type": "bearer"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/auth/login", response_model=Token)
+async def login(
+    credentials: UserLogin,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Login user and get access token.
+
+    Args:
+        credentials: User login credentials
+        db: Database session
+
+    Returns:
+        JWT access token
+    """
+    try:
+        user = await auth_service.authenticate_user(
+            db, credentials.email, credentials.password
+        )
+
+        if not user:
+            raise HTTPException(
+                status_code=401,
+                detail="Incorrect email or password"
+            )
+
+        # Generate token
+        access_token = auth_service.create_access_token(
+            data={"sub": user.id, "email": user.email}
+        )
+
+        return {"access_token": access_token, "token_type": "bearer"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/auth/me", response_model=UserResponse)
+async def get_current_user_info(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get current user information.
+
+    Args:
+        current_user: Current authenticated user
+
+    Returns:
+        User information
+    """
+    return current_user
+
+
+# ============= Script Refinement Endpoints =============
+
+@app.post("/api/scripts/{script_id}/refine")
+async def refine_script_section(
+    script_id: str,
+    request: RefineRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_optional)
+):
+    """
+    Refine a specific section of a script.
+
+    Args:
+        script_id: Script UUID
+        request: Refinement request
+        db: Database session
+        current_user: Optional authenticated user
+
+    Returns:
+        Refined section content
+    """
+    try:
+        # Get script
+        script_data = await script_service.get_script(db, script_id)
+
+        # Refine section
+        result = await refinement_service.refine_section(
+            section_name=request.section_name,
+            current_content=request.current_content,
+            research_data=script_data.get("research_data", {}),
+            style=script_data.get("tone", "educational"),
+            duration=script_data.get("estimated_duration", "10-15 minutes"),
+            user_feedback=request.user_feedback
+        )
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/scripts/{script_id}/regenerate")
+async def regenerate_script(
+    script_id: str,
+    request: RegenerateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_optional)
+):
+    """
+    Regenerate entire script with user feedback.
+
+    Args:
+        script_id: Script UUID
+        request: Regeneration request
+        db: Database session
+        current_user: Optional authenticated user
+
+    Returns:
+        Regenerated script
+    """
+    try:
+        # Get script
+        script_data = await script_service.get_script(db, script_id)
+
+        # Regenerate with feedback
+        result = await refinement_service.regenerate_full_script(
+            research_data=script_data.get("research_data", {}),
+            style=script_data.get("tone", "educational"),
+            duration=script_data.get("estimated_duration", "10-15 minutes"),
+            user_feedback=request.user_feedback
+        )
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============= Export Endpoints =============
+
+@app.get("/api/scripts/{script_id}/export/txt")
+async def export_script_txt(
+    script_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Export script as plain text file.
+
+    Args:
+        script_id: Script UUID
+        db: Database session
+
+    Returns:
+        TXT file download
+    """
+    try:
+        script_data = await script_service.get_script(db, script_id)
+        content = export_service.export_to_txt(script_data)
+
+        return StreamingResponse(
+            io.BytesIO(content),
+            media_type="text/plain",
+            headers={
+                "Content-Disposition": f"attachment; filename=script_{script_id[:8]}.txt"
+            }
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/scripts/{script_id}/export/docx")
+async def export_script_docx(
+    script_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Export script as Word document.
+
+    Args:
+        script_id: Script UUID
+        db: Database session
+
+    Returns:
+        DOCX file download
+    """
+    try:
+        script_data = await script_service.get_script(db, script_id)
+        content = export_service.export_to_docx(script_data)
+
+        return StreamingResponse(
+            io.BytesIO(content),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f"attachment; filename=script_{script_id[:8]}.docx"
+            }
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/scripts/{script_id}/export/pdf")
+async def export_script_pdf(
+    script_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Export script as PDF document.
+
+    Args:
+        script_id: Script UUID
+        db: Database session
+
+    Returns:
+        PDF file download
+    """
+    try:
+        script_data = await script_service.get_script(db, script_id)
+        content = export_service.export_to_pdf(script_data)
+
+        return StreamingResponse(
+            io.BytesIO(content),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=script_{script_id[:8]}.pdf"
+            }
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 

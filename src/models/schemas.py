@@ -75,3 +75,17 @@ class HealthResponse(BaseModel):
     status: str
     version: str
     timestamp: str
+
+
+class RefineRequest(BaseModel):
+    """Request schema for script refinement."""
+
+    section_name: str = Field(..., description="Section to refine: hook|intro|body|conclusion")
+    current_content: str = Field(..., description="Current section content")
+    user_feedback: Optional[str] = Field(None, description="User feedback for refinement")
+
+
+class RegenerateRequest(BaseModel):
+    """Request schema for full script regeneration."""
+
+    user_feedback: Optional[str] = Field(None, description="User feedback for improvements")

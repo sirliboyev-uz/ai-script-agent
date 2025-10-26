@@ -21,6 +21,11 @@
 - **🎙️ Brand Voice** - Customize scripts to match your unique voice and style
 - **📊 Source Citations** - Real URLs and transparent research with credibility assessment
 - **⚡ Performance Tracking** - Token usage, generation time, and cost metrics
+- **🔐 User Authentication** - JWT-based authentication for multi-user support
+- **✏️ Script Refinement** - Regenerate sections or entire scripts with user feedback
+- **📥 Multi-Format Export** - Export scripts as PDF, DOCX, or TXT files
+- **📈 Analytics Dashboard** - Track script generation history and performance metrics
+- **📝 Script Templates** - Pre-made templates for common video types
 
 ### 🛠️ Technical Features
 
@@ -159,6 +164,107 @@ When using **OpenAI as the AI provider**, the application automatically performs
 | **Source URLs** | ✅ Yes | ❌ No |
 | **Verification** | ✅ Verifiable sources | ⚠️ Based on training |
 | **Best For** | Current events, trends | General knowledge topics |
+
+---
+
+## 🔐 Authentication & User Management
+
+The application includes JWT-based authentication for multi-user support.
+
+### Register a New User
+
+```bash
+curl -X POST http://localhost:8000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "username": "johndoe",
+    "password": "securepassword123"
+  }'
+```
+
+### Login
+
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securepassword123"
+  }'
+```
+
+Response:
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer"
+}
+```
+
+### Using the Token
+
+Include the token in the Authorization header for protected endpoints:
+
+```bash
+curl http://localhost:8000/api/auth/me \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+---
+
+## ✏️ Script Refinement
+
+Refine specific sections or regenerate entire scripts with user feedback.
+
+### Refine a Section
+
+```bash
+curl -X POST http://localhost:8000/api/scripts/{script_id}/refine \
+  -H "Content-Type: application/json" \
+  -d '{
+    "section_name": "hook",
+    "current_content": "Current hook content...",
+    "user_feedback": "Make it more engaging and start with a question"
+  }'
+```
+
+### Regenerate Full Script
+
+```bash
+curl -X POST http://localhost:8000/api/scripts/{script_id}/regenerate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_feedback": "Add more statistics and make it less technical"
+  }'
+```
+
+---
+
+## 📥 Export Scripts
+
+Export scripts in multiple formats: TXT, DOCX, or PDF.
+
+### Export as Text
+
+```bash
+curl http://localhost:8000/api/scripts/{script_id}/export/txt \
+  -o script.txt
+```
+
+### Export as Word Document
+
+```bash
+curl http://localhost:8000/api/scripts/{script_id}/export/docx \
+  -o script.docx
+```
+
+### Export as PDF
+
+```bash
+curl http://localhost:8000/api/scripts/{script_id}/export/pdf \
+  -o script.pdf
+```
 
 ---
 
@@ -375,12 +481,13 @@ curl -X POST http://localhost:8000/api/generate \
 - [x] Database persistence
 - [x] API documentation
 
-### 🔄 Phase 2: Enhancement (In Progress)
-- [ ] Real web search integration (SerpAPI)
-- [ ] Script editing/refinement endpoint
-- [ ] User authentication (JWT)
-- [ ] Analytics dashboard
-- [ ] Script template library
+### ✅ Phase 2: Enhancement (Completed)
+- [x] Real web search integration (OpenAI Agents SDK)
+- [x] Script editing/refinement endpoint
+- [x] User authentication (JWT)
+- [x] Analytics dashboard
+- [x] Script template library
+- [x] Export options (PDF, DOCX, TXT)
 
 ### 📋 Phase 3: Advanced Features
 - [ ] YouTube API integration
