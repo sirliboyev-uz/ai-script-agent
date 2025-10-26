@@ -3,8 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Script Generator</title>
+    <title>AI Script Generator - Professional YouTube Script Creation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,262 +41,703 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: var(--gray-900);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1280px;
             margin: 0 auto;
+            padding: 24px;
+            position: relative;
+            z-index: 2;
         }
 
+        /* Header */
         .header {
             text-align: center;
+            margin-bottom: 48px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 100px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 500;
             color: white;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s ease-in-out infinite;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
         }
 
         .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 600px;
+            margin: 0 auto;
+            font-weight: 400;
         }
 
+        /* Card System */
         .card {
             background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+            border: 1px solid var(--gray-200);
+        }
+
+        .card-header {
+            padding: 32px 32px 0 32px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+        }
+
+        .card-description {
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-bottom: 24px;
+        }
+
+        .card-body {
+            padding: 32px;
+        }
+
+        /* Form Controls */
+        .form-grid {
+            display: grid;
+            gap: 24px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         label {
-            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-700);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .label-badge {
+            font-size: 11px;
             font-weight: 600;
-            margin-bottom: 8px;
-            color: #333;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         input[type="text"],
         select,
         textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.3s;
+            padding: 12px 16px;
+            border: 1.5px solid var(--gray-300);
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: white;
+            color: var(--gray-900);
+        }
+
+        input[type="text"]:hover,
+        select:hover,
+        textarea:hover {
+            border-color: var(--gray-400);
         }
 
         input[type="text"]:focus,
         select:focus,
         textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
 
         textarea {
             min-height: 100px;
             resize: vertical;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 14px 32px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 600;
+        .input-hint {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-top: -4px;
+        }
+
+        /* Select custom styling */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            width: 100%;
         }
 
-        .btn:hover {
+        /* Button System */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
         }
 
-        .btn:disabled {
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            display: none;
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-200);
         }
 
-        .loading.active {
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        /* Loading State */
+        .loading-container {
+            display: none;
+            padding: 48px 32px;
+            text-align: center;
+        }
+
+        .loading-container.active {
             display: block;
+        }
+
+        .spinner-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
         }
 
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary);
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .loading-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 8px;
         }
 
-        .result {
+        .loading-subtext {
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--gray-200);
+            border-radius: 100px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 100px;
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        /* Result Display */
+        .result-container {
             display: none;
         }
 
-        .result.active {
+        .result-container.active {
             display: block;
         }
 
-        .script-section {
-            margin-bottom: 30px;
+        .result-header {
+            padding: 32px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
         }
 
-        .script-section h3 {
-            color: #667eea;
-            margin-bottom: 12px;
-            font-size: 1.3em;
+        .result-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
 
-        .script-content {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            white-space: pre-wrap;
-            line-height: 1.6;
+        .result-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
         }
 
-        .metadata {
+        .metadata-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 16px;
+            padding: 24px 32px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
         }
 
         .metadata-item {
-            background: #f8f9fa;
-            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metadata-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metadata-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .script-section {
+            padding: 32px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
             border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
         }
 
-        .metadata-item strong {
-            display: block;
-            color: #667eea;
-            margin-bottom: 5px;
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-900);
         }
 
-        .sources {
-            margin-top: 20px;
+        .script-content {
+            background: var(--gray-50);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--gray-700);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .sources-section {
+            padding: 32px;
+            background: var(--gray-50);
+            border-top: 1px solid var(--gray-200);
         }
 
         .source-item {
-            background: #fff8e1;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 4px solid #ffa726;
+            background: white;
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
         }
 
-        .btn-copy {
-            background: #4caf50;
-            margin-top: 20px;
+        .source-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
         }
 
-        .btn-copy:hover {
-            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+        .source-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+
+        .source-url {
+            font-size: 13px;
+            color: var(--primary);
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .source-url:hover {
+            text-decoration: underline;
+        }
+
+        .credibility-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .credibility-high {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .credibility-medium {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .credibility-low {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 24px 32px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes progress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header {
+                margin-bottom: 32px;
+            }
+
+            .card-header,
+            .card-body,
+            .script-section,
+            .sources-section {
+                padding: 24px 20px;
+            }
+
+            .result-header {
+                padding: 24px 20px;
+            }
+
+            .metadata-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
+
+        .mb-4 {
+            margin-bottom: 16px;
         }
     </style>
 </head>
 <body>
+    <div class="noise-overlay"></div>
+
     <div class="container">
+        <!-- Header -->
         <div class="header">
-            <h1>🎬 AI Script Generator</h1>
-            <p>Research-powered YouTube script generation with Claude AI</p>
+            <div class="header-badge">
+                <span class="badge-dot"></span>
+                AI-Powered Script Generation
+            </div>
+            <h1>🎬 Script Generator</h1>
+            <p>Transform any topic into professional YouTube scripts in seconds</p>
         </div>
 
+        <!-- Input Form -->
         <div class="card" id="inputCard">
-            <form id="scriptForm">
-                <div class="form-group">
-                    <label for="topic">Video Topic *</label>
-                    <input type="text" id="topic" name="topic" placeholder="e.g., How to start a dropshipping business" required>
-                </div>
+            <div class="card-header">
+                <h2 class="card-title">Create Your Script</h2>
+                <p class="card-description">Enter your topic and customize the generation settings</p>
+            </div>
+            <div class="card-body">
+                <form id="scriptForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="topic">
+                                Video Topic
+                                <span class="label-badge">Required</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="topic"
+                                name="topic"
+                                placeholder="e.g., How to start a YouTube channel in 2024"
+                                required
+                            >
+                            <span class="input-hint">Be specific for better results</span>
+                        </div>
 
-                <div class="form-group">
-                    <label for="style">Script Style</label>
-                    <select id="style" name="style">
-                        <option value="educational">Educational</option>
-                        <option value="entertaining">Entertaining</option>
-                        <option value="inspirational">Inspirational</option>
-                    </select>
-                </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="form-group">
+                                <label for="style">Script Style</label>
+                                <select id="style" name="style">
+                                    <option value="educational">📚 Educational</option>
+                                    <option value="entertaining">🎭 Entertaining</option>
+                                    <option value="inspirational">✨ Inspirational</option>
+                                </select>
+                            </div>
 
-                <div class="form-group">
-                    <label for="duration">Target Duration</label>
-                    <select id="duration" name="duration">
-                        <option value="5-8 minutes">5-8 minutes</option>
-                        <option value="10-15 minutes" selected>10-15 minutes</option>
-                        <option value="15-20 minutes">15-20 minutes</option>
-                    </select>
-                </div>
+                            <div class="form-group">
+                                <label for="duration">Target Duration</label>
+                                <select id="duration" name="duration">
+                                    <option value="5-8 minutes">⏱️ 5-8 minutes</option>
+                                    <option value="10-15 minutes" selected>⏱️ 10-15 minutes</option>
+                                    <option value="15-20 minutes">⏱️ 15-20 minutes</option>
+                                </select>
+                            </div>
+                        </div>
 
-                <div class="form-group">
-                    <label for="research_depth">Research Depth</label>
-                    <select id="research_depth" name="research_depth">
-                        <option value="quick">Quick (2-3 sources)</option>
-                        <option value="medium" selected>Medium (4-6 sources)</option>
-                        <option value="deep">Deep (8-10 sources)</option>
-                    </select>
-                </div>
+                        <div class="form-group">
+                            <label for="research_depth">Research Depth</label>
+                            <select id="research_depth" name="research_depth">
+                                <option value="quick">⚡ Quick (2-3 sources)</option>
+                                <option value="medium" selected>🎯 Medium (4-6 sources)</option>
+                                <option value="deep">🔬 Deep (8-10 sources)</option>
+                            </select>
+                            <span class="input-hint">Higher depth provides more comprehensive research</span>
+                        </div>
 
-                <div class="form-group">
-                    <label for="brand_voice">Brand Voice (Optional)</label>
-                    <textarea id="brand_voice" name="brand_voice" placeholder="e.g., Professional yet friendly, casual tone, use humor..."></textarea>
-                </div>
+                        <div class="form-group">
+                            <label for="brand_voice">
+                                Brand Voice
+                                <span class="label-badge">Optional</span>
+                            </label>
+                            <textarea
+                                id="brand_voice"
+                                name="brand_voice"
+                                placeholder="e.g., Professional yet friendly, conversational tone with occasional humor..."
+                            ></textarea>
+                            <span class="input-hint">Describe your unique voice and style</span>
+                        </div>
 
-                <button type="submit" class="btn">Generate Script</button>
-            </form>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            ✨ Generate Script
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        <div class="card loading" id="loadingCard">
-            <div class="spinner"></div>
-            <p><strong>Generating your script...</strong></p>
-            <p>This may take 30-60 seconds as we research and write your script.</p>
+        <!-- Loading State -->
+        <div class="card loading-container" id="loadingCard">
+            <div class="loading-container">
+                <div class="spinner-container">
+                    <div class="spinner"></div>
+                </div>
+                <h3 class="loading-text">Generating Your Script...</h3>
+                <p class="loading-subtext">This may take 30-60 seconds. We're researching and writing your professional script.</p>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="card result" id="resultCard">
-            <h2 id="resultTitle">Script Generated!</h2>
+        <!-- Result Display -->
+        <div class="card result-container" id="resultCard">
+            <div class="result-header">
+                <h2 class="result-title" id="resultTitle">Script Generated Successfully! ✨</h2>
+                <p class="result-subtitle">Your professional YouTube script is ready</p>
+            </div>
 
-            <div class="metadata" id="metadata"></div>
+            <div class="metadata-grid" id="metadata"></div>
 
             <div class="script-section">
-                <h3>📝 Full Script</h3>
+                <div class="section-header">
+                    <div class="section-icon">📝</div>
+                    <h3 class="section-title">Full Script</h3>
+                </div>
                 <div class="script-content" id="fullScript"></div>
             </div>
 
-            <div class="sources" id="sources"></div>
+            <div class="sources-section" id="sources"></div>
 
-            <button class="btn btn-copy" onclick="copyScript()">📋 Copy Script</button>
-            <button class="btn" onclick="resetForm()" style="margin-top: 10px; background: #6c757d;">Generate Another</button>
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="copyScript()">
+                    📋 Copy Script
+                </button>
+                <button class="btn btn-secondary" onclick="resetForm()">
+                    🔄 Generate Another
+                </button>
+            </div>
         </div>
     </div>
 
@@ -288,8 +758,10 @@
                 brand_voice: document.getElementById('brand_voice').value || null
             };
 
+            // Show loading state
             inputCard.style.display = 'none';
             loadingCard.classList.add('active');
+            resultCard.classList.remove('active');
 
             try {
                 const response = await fetch('/api/generate', {
@@ -301,7 +773,8 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to generate script');
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to generate script');
                 }
 
                 const data = await response.json();
@@ -317,26 +790,27 @@
             loadingCard.classList.remove('active');
             resultCard.classList.add('active');
 
-            document.getElementById('resultTitle').textContent = data.title || 'Script Generated!';
+            // Update title
+            document.getElementById('resultTitle').textContent = data.title || 'Script Generated! ✨';
 
             // Metadata
             const metadata = document.getElementById('metadata');
             metadata.innerHTML = `
                 <div class="metadata-item">
-                    <strong>Duration</strong>
-                    ${data.estimated_duration || 'N/A'}
+                    <div class="metadata-label">Duration</div>
+                    <div class="metadata-value">${data.estimated_duration || 'N/A'}</div>
                 </div>
                 <div class="metadata-item">
-                    <strong>Tone</strong>
-                    ${data.tone || 'N/A'}
+                    <div class="metadata-label">Tone</div>
+                    <div class="metadata-value">${data.tone || 'N/A'}</div>
                 </div>
                 <div class="metadata-item">
-                    <strong>Tokens Used</strong>
-                    ${data.tokens_used || 0}
+                    <div class="metadata-label">Tokens Used</div>
+                    <div class="metadata-value">${data.tokens_used || 0}</div>
                 </div>
                 <div class="metadata-item">
-                    <strong>Generation Time</strong>
-                    ${data.generation_time ? data.generation_time.toFixed(2) + 's' : 'N/A'}
+                    <div class="metadata-label">Generation Time</div>
+                    <div class="metadata-value">${data.generation_time ? data.generation_time.toFixed(1) + 's' : 'N/A'}</div>
                 </div>
             `;
 
@@ -346,24 +820,45 @@
             // Sources
             const sourcesDiv = document.getElementById('sources');
             if (data.sources && data.sources.length > 0) {
-                sourcesDiv.innerHTML = '<h3>📚 Sources</h3>';
+                sourcesDiv.innerHTML = `
+                    <div class="section-header">
+                        <div class="section-icon">📚</div>
+                        <h3 class="section-title">Research Sources</h3>
+                    </div>
+                `;
                 data.sources.forEach(source => {
+                    const credibilityClass = `credibility-${source.credibility || 'medium'}`;
                     sourcesDiv.innerHTML += `
                         <div class="source-item">
-                            <strong>${source.title}</strong>
-                            ${source.url ? `<p><a href="${source.url}" target="_blank">${source.url}</a></p>` : ''}
-                            <p><small>Credibility: ${source.credibility}</small></p>
+                            <div class="source-title">${source.title}</div>
+                            ${source.url ? `<a href="${source.url}" target="_blank" class="source-url">${source.url}</a><br>` : ''}
+                            <span class="credibility-badge ${credibilityClass}">${source.credibility || 'medium'} credibility</span>
                         </div>
                     `;
                 });
+            } else {
+                sourcesDiv.innerHTML = '';
             }
 
             window.currentScript = data.full_script;
+
+            // Scroll to result
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function copyScript() {
             navigator.clipboard.writeText(window.currentScript);
-            alert('Script copied to clipboard!');
+
+            // Show feedback
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ Copied!';
+            btn.style.background = 'var(--success)';
+
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+            }, 2000);
         }
 
         function resetForm() {
@@ -371,7 +866,14 @@
             loadingCard.classList.remove('active');
             resultCard.classList.remove('active');
             form.reset();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // Add stagger animation to form inputs
+        document.querySelectorAll('.form-group').forEach((group, index) => {
+            group.style.animationDelay = `${index * 0.1}s`;
+            group.style.animation = 'fadeInUp 0.6s ease-out forwards';
+        });
     </script>
 </body>
 </html>
