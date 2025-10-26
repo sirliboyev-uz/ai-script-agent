@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from src.agents import ResearchAgent, ScriptwriterAgent
+from src.agents.web_research_agent import WebResearchAgent
 from src.models.database import Script
+from src.config import settings
 from src.utils import (
     validate_topic,
     validate_style,
@@ -23,7 +25,13 @@ class ScriptService:
 
     def __init__(self):
         """Initialize service with agents."""
-        self.researcher = ResearchAgent()
+        # Use WebResearchAgent for OpenAI with real web search
+        # Keep ResearchAgent as fallback for Anthropic
+        if settings.AI_PROVIDER == "openai":
+            self.researcher = WebResearchAgent()
+        else:
+            self.researcher = ResearchAgent()
+
         self.scriptwriter = ScriptwriterAgent()
 
     async def generate_script(
