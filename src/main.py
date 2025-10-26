@@ -122,6 +122,38 @@ async def generate_script(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/generate/stream")
+async def generate_script_stream(
+    request: GenerateScriptRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Generate a YouTube script with real-time progress updates via Server-Sent Events.
+
+    Args:
+        request: Script generation request
+        db: Database session
+
+    Returns:
+        SSE stream with progress updates
+    """
+    return StreamingResponse(
+        script_service.generate_script_stream(
+            db=db,
+            topic=request.topic,
+            style=request.style,
+            duration=request.duration,
+            research_depth=request.research_depth,
+            brand_voice=request.brand_voice
+        ),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+
 @app.get("/api/scripts/{script_id}")
 async def get_script(
     script_id: str,

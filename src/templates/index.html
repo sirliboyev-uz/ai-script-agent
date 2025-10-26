@@ -969,30 +969,81 @@
             loadingCard.classList.add('active');
             resultCard.classList.remove('active');
 
-            // Start progress simulation
-            updateProgress(0); // Step 1: Searching
+            // Reset progress
+            updateProgress(0);
 
-            try {
-                // Simulate step progression (approximate timing)
-                setTimeout(() => updateProgress(1), 3000);  // After 3s: Analyzing
-                setTimeout(() => updateProgress(2), 10000); // After 10s: Writing
+            // Use EventSource for real-time updates
+            const eventSource = new EventSource(
+                '/api/generate/stream?' + new URLSearchParams({
+                    topic: formData.topic,
+                    style: formData.style,
+                    duration: formData.duration,
+                    research_depth: formData.research_depth,
+                    brand_voice: formData.brand_voice || ''
+                })
+            );
 
-                const response = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-
+            // Handle POST request with EventSource workaround
+            fetch('/api/generate/stream', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            }).then(response => {
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to generate script');
+                    eventSource.close();
+                    throw new Error('Failed to start generation');
                 }
 
-                const data = await response.json();
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
 
-                // Mark all steps complete
+                function processStream() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) return;
+
+                        const chunk = decoder.decode(value, { stream: true });
+                        const lines = chunk.split('\n');
+
+                        lines.forEach(line => {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.slice(6));
+                                    handleProgressEvent(data);
+                                } catch (e) {
+                                    console.error('Parse error:', e);
+                                }
+                            }
+                        });
+
+                        processStream();
+                    });
+                }
+
+                processStream();
+            }).catch(error => {
+                alert('Error: ' + error.message);
+                resetForm();
+            });
+        });
+
+        function handleProgressEvent(data) {
+            if (data.type === 'progress') {
+                // Update progress based on step
+                const stepMap = { 'research': 0, 'analysis': 1, 'writing': 2 };
+                const stepIndex = stepMap[data.step];
+
+                if (stepIndex !== undefined) {
+                    updateProgress(stepIndex);
+                }
+
+                // Update loading text
+                document.getElementById('loadingText').textContent = data.message;
+
+                // Update progress bar
+                document.getElementById('progressFill').style.width = data.progress + '%';
+            }
+            else if (data.type === 'complete') {
+                // Mark all complete
                 document.getElementById('progressStep1').classList.add('completed');
                 document.getElementById('progressStep1').querySelector('.step-status').textContent = '✅';
                 document.getElementById('progressStep2').classList.add('completed');
@@ -1001,14 +1052,14 @@
                 document.getElementById('progressStep3').querySelector('.step-status').textContent = '✅';
                 document.getElementById('progressFill').style.width = '100%';
 
-                // Small delay to show completion
-                setTimeout(() => displayResult(data), 500);
-
-            } catch (error) {
-                alert('Error: ' + error.message);
+                // Show result
+                setTimeout(() => displayResult(data.data), 500);
+            }
+            else if (data.type === 'error') {
+                alert('Error: ' + data.message);
                 resetForm();
             }
-        });
+        }
 
         function displayResult(data) {
             loadingCard.classList.remove('active');
