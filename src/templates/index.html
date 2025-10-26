@@ -358,7 +358,80 @@
             height: 100%;
             background: linear-gradient(90deg, var(--primary), var(--secondary));
             border-radius: 100px;
-            animation: progress 2s ease-in-out infinite;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Progress Steps */
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+
+        .progress-step.completed {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .step-icon {
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gray-100);
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .progress-step.active .step-icon {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .progress-step.completed .step-icon {
+            background: var(--success);
+        }
+
+        .step-content {
+            flex: 1;
+            text-align: left;
+        }
+
+        .step-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+
+        .step-description {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        .step-status {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         /* Result Display */
@@ -723,10 +796,39 @@
                 <div class="spinner-container">
                     <div class="spinner"></div>
                 </div>
-                <h3 class="loading-text">Generating Your Script...</h3>
-                <p class="loading-subtext">This may take 30-60 seconds. We're researching and writing your professional script.</p>
+                <h3 class="loading-text" id="loadingText">Generating Your Script...</h3>
+                <p class="loading-subtext" id="loadingSubtext">This may take 30-60 seconds. We're researching and writing your professional script.</p>
+
+                <!-- Progress Steps -->
+                <div style="margin-top: 32px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    <div id="progressStep1" class="progress-step">
+                        <div class="step-icon">🔍</div>
+                        <div class="step-content">
+                            <div class="step-title">Searching the web</div>
+                            <div class="step-description">Finding current information and sources</div>
+                        </div>
+                        <div class="step-status">⏳</div>
+                    </div>
+                    <div id="progressStep2" class="progress-step">
+                        <div class="step-icon">📊</div>
+                        <div class="step-content">
+                            <div class="step-title">Analyzing research</div>
+                            <div class="step-description">Synthesizing findings and key insights</div>
+                        </div>
+                        <div class="step-status">⏳</div>
+                    </div>
+                    <div id="progressStep3" class="progress-step">
+                        <div class="step-icon">✍️</div>
+                        <div class="step-content">
+                            <div class="step-title">Writing your script</div>
+                            <div class="step-description">Crafting professional YouTube script</div>
+                        </div>
+                        <div class="step-status">⏳</div>
+                    </div>
+                </div>
+
                 <div class="progress-bar">
-                    <div class="progress-fill"></div>
+                    <div class="progress-fill" id="progressFill"></div>
                 </div>
             </div>
         </div>
@@ -818,6 +920,39 @@
         // Load templates when page loads
         loadTemplates();
 
+        // Progress simulation function
+        function updateProgress(step) {
+            const steps = [
+                { id: 'progressStep1', status: '⏳', text: 'Searching the web...', progress: 0 },
+                { id: 'progressStep2', status: '⏳', text: 'Analyzing research...', progress: 33 },
+                { id: 'progressStep3', status: '⏳', text: 'Writing your script...', progress: 66 }
+            ];
+
+            // Reset all steps
+            steps.forEach((s, index) => {
+                const stepEl = document.getElementById(s.id);
+                stepEl.classList.remove('active', 'completed');
+                stepEl.querySelector('.step-status').textContent = s.status;
+            });
+
+            // Update current and completed steps
+            for (let i = 0; i <= step; i++) {
+                const stepEl = document.getElementById(steps[i].id);
+                if (i < step) {
+                    stepEl.classList.add('completed');
+                    stepEl.querySelector('.step-status').textContent = '✅';
+                } else if (i === step) {
+                    stepEl.classList.add('active');
+                    stepEl.querySelector('.step-status').textContent = '🔄';
+                    document.getElementById('loadingText').textContent = steps[i].text;
+                }
+            }
+
+            // Update progress bar
+            const progress = step === 0 ? 33 : step === 1 ? 66 : 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -834,7 +969,14 @@
             loadingCard.classList.add('active');
             resultCard.classList.remove('active');
 
+            // Start progress simulation
+            updateProgress(0); // Step 1: Searching
+
             try {
+                // Simulate step progression (approximate timing)
+                setTimeout(() => updateProgress(1), 3000);  // After 3s: Analyzing
+                setTimeout(() => updateProgress(2), 10000); // After 10s: Writing
+
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: {
@@ -849,7 +991,18 @@
                 }
 
                 const data = await response.json();
-                displayResult(data);
+
+                // Mark all steps complete
+                document.getElementById('progressStep1').classList.add('completed');
+                document.getElementById('progressStep1').querySelector('.step-status').textContent = '✅';
+                document.getElementById('progressStep2').classList.add('completed');
+                document.getElementById('progressStep2').querySelector('.step-status').textContent = '✅';
+                document.getElementById('progressStep3').classList.add('completed');
+                document.getElementById('progressStep3').querySelector('.step-status').textContent = '✅';
+                document.getElementById('progressFill').style.width = '100%';
+
+                // Small delay to show completion
+                setTimeout(() => displayResult(data), 500);
 
             } catch (error) {
                 alert('Error: ' + error.message);
